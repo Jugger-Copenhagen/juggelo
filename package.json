@@ -1,0 +1,14 @@
+{
+  "name": "jugger-elo",
+  "version": "0.0.1",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "ts-node": "^10.9.1"
+  }
+}
