@@ -27,6 +27,13 @@ class JuggerTournament {
   toString() {
     return `JuggerTournament(${this.name}, ${this.slug})`;
   }
+
+  toJSON() {
+    return {
+      name: this.name,
+      slug: this.slug,
+    };
+  }
 }
 
 class JuggerMatch {
@@ -137,6 +144,18 @@ class JuggerTeam {
     }
     return JuggerTeam.K_REGULAR_PLAYER;
   }
+
+  toString() {
+    return `JuggerTeam(${this.name}, ${this.slug}, ${this.elo}})`;
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      slug: this.slug,
+      elo: this.elo,
+    };
+  }
 }
 
 async function fetchHtmlDocument(urlPath: string): Promise<HTMLElement> {
@@ -185,7 +204,25 @@ async function getPastJuggerTournaments(): Promise<JuggerTournament[]> {
 }
 
 async function getTeamsForTournament(tournament: JuggerTournament): Promise<JuggerTeam[]> {
-  return [];
+  const tournamentAllTeamsPage = await fetchHtmlDocument(
+    `/tournaments/${tournament.slug}/all-teams`
+  );
+
+  const $$teams = tournamentAllTeamsPage.querySelectorAll('li.view-tournament__single-team a');
+
+  return $$teams.map(($team: HTMLElement) => {
+    const name = $team.textContent;
+
+    const href = $team.getAttribute('href');
+    if (href === undefined) {
+      throw new Error('team href is undefined');
+    }
+    const slug = href.split('/').pop();
+    if (slug === undefined) {
+      throw new Error('team slug is undefined');
+    }
+    return new JuggerTeam(name, slug);
+  });
 }
 
 async function getMatchesForTournament(tournament: JuggerTournament): Promise<JuggerMatch[]> {
@@ -205,4 +242,6 @@ async function getMatchesForTournament(tournament: JuggerTournament): Promise<Ju
       teams.set(team.slug, team);
     }
   }
+
+  console.log(teams.size);
 })();
