@@ -1,8 +1,19 @@
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
+
 import fetch from 'node-fetch';
+import { HTMLElement, parse } from 'node-html-parser';
 
 const BASE_URL = 'https://tugeny.org';
+const CACHE_DIR = 'cache';
 
 const NON_JUGGER_TOURNAMENTS = ['1-smash-brothers-turnier-zu-muenster'];
+
+const mkdir = util.promisify(fs.mkdir);
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
 
 class JuggerTournament {
   public readonly name: string;
@@ -124,15 +135,29 @@ class JuggerTeam {
   }
 }
 
-async function fetchHtmlDocument(path: string) {
-  const url = `${BASE_URL}${path}`;
-  const response = await fetch(url);
+async function fetchHtmlDocument(urlPath: string): Promise<HTMLElement> {
+  const cacheFilename = crypto.createHash('md5').update(urlPath).digest('hex');
+  const cachePath = path.join(CACHE_DIR, `${cacheFilename}.html`);
+  let html;
+
+  if (fs.existsSync(cachePath)) {
+    html = await readFile(cachePath, 'utf8');
+  } else {
+    const url = `${BASE_URL}${urlPath}`;
+    const response = await fetch(url);
+    html = await response.text();
+
+    await mkdir(CACHE_DIR, { recursive: true });
+    await writeFile(cachePath, html, 'utf8');
+  }
+
+  return parse(html);
 }
 
 async function getPastJuggerTournaments(): Promise<JuggerTournament[]> {
-  const allTournamentsPage = fetchHtmlDocument('/');
+  const allTournamentsPage = await fetchHtmlDocument('/');
 
-  // TODO: parse things
+  // allTournamentsPage.querySelectorAll('.');
 
   return [];
 }
@@ -148,6 +173,9 @@ async function getMatchesForTournament(tournament: JuggerTournament): Promise<Ju
 (async () => {
   const allTournaments = await getPastJuggerTournaments();
 
+  console.log(allTournaments);
+
+  /*
   // TODO: need to validate if teams have consistent names across tournaments
   const teams = new Map<string, JuggerTeam>();
   for (const tournament of allTournaments) {
@@ -156,4 +184,5 @@ async function getMatchesForTournament(tournament: JuggerTournament): Promise<Ju
       teams.set(team.slug, team);
     }
   }
+  */
 })();
