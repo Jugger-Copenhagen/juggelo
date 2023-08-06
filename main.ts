@@ -23,6 +23,10 @@ class JuggerTournament {
     this.name = name;
     this.slug = slug;
   }
+
+  toString() {
+    return `JuggerTournament(${this.name}, ${this.slug})`;
+  }
 }
 
 class JuggerMatch {
@@ -157,9 +161,27 @@ async function fetchHtmlDocument(urlPath: string): Promise<HTMLElement> {
 async function getPastJuggerTournaments(): Promise<JuggerTournament[]> {
   const allTournamentsPage = await fetchHtmlDocument('/');
 
-  // allTournamentsPage.querySelectorAll('.');
+  const $$tournaments = allTournamentsPage.querySelectorAll(
+    'li.list-published__single-tournament a'
+  );
 
-  return [];
+  const tournaments = $$tournaments.map(($tournament: HTMLElement) => {
+    const textContent = $tournament.textContent;
+    const [name, dates] = textContent.split(' | ');
+    if (dates === undefined) {
+      throw new Error('tournament dates are undefined');
+    }
+    // TODO: we could parse dates here as well...
+
+    const href = $tournament.getAttribute('href');
+    if (href === undefined) {
+      throw new Error('tournament href is undefined');
+    }
+    const slug = href.split('/')[2];
+    return new JuggerTournament(name, slug);
+  });
+
+  return tournaments.filter((tournament) => !NON_JUGGER_TOURNAMENTS.includes(tournament.name));
 }
 
 async function getTeamsForTournament(tournament: JuggerTournament): Promise<JuggerTeam[]> {
@@ -175,7 +197,6 @@ async function getMatchesForTournament(tournament: JuggerTournament): Promise<Ju
 
   console.log(allTournaments);
 
-  /*
   // TODO: need to validate if teams have consistent names across tournaments
   const teams = new Map<string, JuggerTeam>();
   for (const tournament of allTournaments) {
@@ -184,5 +205,4 @@ async function getMatchesForTournament(tournament: JuggerTournament): Promise<Ju
       teams.set(team.slug, team);
     }
   }
-  */
 })();
