@@ -50,7 +50,7 @@ async function getPastJuggerTournaments(): Promise<JuggerTournament[]> {
 
   return $$tournaments
     .map(JuggerTournament.fromTugenyHtml)
-    .filter((tournament) => !NON_JUGGER_TOURNAMENTS.includes(tournament.name));
+    .filter((tournament) => !NON_JUGGER_TOURNAMENTS.includes(tournament.slug));
 }
 
 async function getTeamsForTournament(tournament: JuggerTournament): Promise<JuggerTeam[]> {
@@ -86,7 +86,6 @@ async function getMatchesForTournament(
 (async () => {
   const allTournaments = await getPastJuggerTournaments();
 
-  // TODO: need to validate if teams have consistent names across tournaments
   const teams = new Map<string, JuggerTeam>();
   for (const tournament of allTournaments) {
     const tournamentTeams = await getTeamsForTournament(tournament);
@@ -98,11 +97,20 @@ async function getMatchesForTournament(
   for (const tournament of allTournaments) {
     const matches = await getMatchesForTournament(tournament, teams);
     for (const match of matches) {
+      if (match.teams[0].name === '-' || match.teams[1].name === '-') {
+        continue;
+      }
       match.play();
     }
   }
 
   const teamsArray = Array.from(teams.values());
   teamsArray.sort((a, b) => b.elo - a.elo);
-  console.log(JSON.stringify(teamsArray));
+  console.log('team,elo,matchesPlayed');
+  for (const team of teamsArray) {
+    if (team.name === '-') {
+      continue;
+    }
+    console.log(`${team.name},${team.elo},${team.numMatchesPlayed}`);
+  }
 })();

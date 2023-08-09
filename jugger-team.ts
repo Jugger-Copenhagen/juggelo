@@ -13,9 +13,9 @@ export default class JuggerTeam {
   public readonly name: string;
   public readonly slug: string;
   public elo: number;
+  public numMatchesPlayed: number;
 
   private eloMax: number;
-  private numMatchesPlayed: number;
 
   constructor(name: string, slug: string) {
     this.name = name;
