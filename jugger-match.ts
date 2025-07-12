@@ -145,7 +145,7 @@ export default class JuggerMatch {
 
     const $results = $match.querySelector('.view-match__results');
     if ($results === null) {
-      throw new Error('match results are undefined');
+      throw new Error('match results are undefined for ' + $match);
     }
     const { sets, type } = JuggerMatch.parseMatchResults($results.text);
 

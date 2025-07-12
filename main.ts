@@ -12,7 +12,8 @@ import JuggerTournament from './jugger-tournament.ts';
 const BASE_URL = 'https://tugeny.org';
 const CACHE_DIR = 'cache';
 
-const NON_JUGGER_TOURNAMENTS = ['1-smash-brothers-turnier-zu-muenster'];
+// also includes tournaments that for whatever reason have no "finished" matches
+const NON_JUGGER_TOURNAMENTS = ['1-smash-brothers-turnier-zu-muenster','2-paderborner-drei-hasen-cup','2-schattentanz','rookie-spieltag-in-leipzig'];
 
 const mkdir = util.promisify(fs.mkdir);
 const readFile = util.promisify(fs.readFile);
